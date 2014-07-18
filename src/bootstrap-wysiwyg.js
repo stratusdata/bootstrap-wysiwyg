@@ -100,6 +100,21 @@
 				var commandArr = commandWithArgs.split(' '),
 					command = commandArr.shift(),
 					args = commandArr.join(' ') + (valueArg || '');
+
+				if(command == 'createLink') {
+					if (options.makeLinksValid || options.invalidLinkHandler) {
+						var _match = valueArg.match(/^(http|https)+?:\/\//);
+						if (!_match || _match.length == 0) {
+							if (options.makeLinksValid) {
+								valueArg = 'http://' + valueArg;
+							}
+							else {
+								options.invalidLinkHandler(valueArg);
+								return;
+							}
+						}
+					}
+				}
 				
 				var parts = commandWithArgs.split('-');
 				
@@ -324,6 +339,8 @@
 		selectionColor: 'darkgrey',
 		dragAndDropImages: true,
 		keypressTimeout: 200,
+		makeLinksValid: true,
+		invalidLinkHandler: function (link) { return; },
 		fileUploadError: function (reason, detail) { console.log("File upload error", reason, detail); }
 	};
 }(window.jQuery));
