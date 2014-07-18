@@ -25,9 +25,9 @@
     "CONTRIBUTING"
   ],
   "dependencies": {
-    "jquery": ">= 1.9.0"
   },
   "devDependencies": {
+    "jquery": ">= 1.9.0",
     "jquery.hotkeys": ">= 1.0",
     "fontawesome": ">= 3.0.0",
     "bootstrap": ">= 2.0",
