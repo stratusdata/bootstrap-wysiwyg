@@ -106,10 +106,10 @@
 						var _match = valueArg.match(/^(http|https)+?:\/\//);
 						if (!_match || _match.length == 0) {
 							if (options.makeLinksValid) {
-								valueArg = 'http://' + valueArg;
+								args = 'http://' + args;
 							}
 							else {
-								options.invalidLinkHandler(valueArg);
+								options.invalidLinkHandler(args);
 								return;
 							}
 						}
