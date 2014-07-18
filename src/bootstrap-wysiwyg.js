@@ -277,6 +277,12 @@
 					});
 			};
 		options = $.extend(true, {}, $.fn.wysiwyg.defaults, userOptions);
+
+		//do not extend hotkeys, either use the default of the passed in option
+		if(userOptions.hotKeys) {
+			options.hotKeys = userOptions.hotKeys;
+		}
+
 		toolbarBtnSelector = 'a[data-' + options.commandRole + '],button[data-' + options.commandRole + '],input[type=button][data-' + options.commandRole + ']';
 		bindHotkeys(options.hotKeys);
 		
