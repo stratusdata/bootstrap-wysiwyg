@@ -1,40 +1,15 @@
-/* @fileoverview 
- * Provides full bootstrap based, multi-instance WYSIWYG editor.
- * 
+/* @fileoverview
+ * Provides full Bootstrap based, multi-instance WYSIWYG editor.
+ *
  * "Name"    = 'bootstrap-wysiwyg'
- * "Author"  = 'Various, see LICENCE'
- * "Version" = '1.0.1'
- * "About"   = 'Tiny Bootstrap and JQuery Based WISWYG rich text editor.' 
+ * "Author"  = 'Various, see LICENSE'
+ * "Version" = '1.0.4'
+ * "About"   = 'A tiny Bootstrap and jQuery based WYSIWYG rich text editor based on the browser function execCommand.'
  */
+
 (function ($) {
 	'use strict';
-	/** underscoreThrottle() 
-	 * 	From underscore http://underscorejs.org/docs/underscore.html 
-	 */
-	var underscoreThrottle = function(func, wait) {
-		var context, args, timeout, result;
-		var previous = 0;
-		var later = function() {
-			previous = new Date;
-			timeout = null;
-			result = func.apply(context, args);
-		};
-		return function() {
-			var now = new Date;
-			var remaining = wait - (now - previous);
-			context = this;
-			args = arguments;
-			if (remaining <= 0) {
-				clearTimeout(timeout);
-				timeout = null;
-				previous = now;
-				result = func.apply(context, args);
-			} else if (!timeout) {
-				timeout = setTimeout(later, remaining);
-			}
-			return result;
-		};
-	}
+
 	var readFileIntoDataUrl = function (fileInfo) {
 		var loader = $.Deferred(),
 			fReader = new FileReader();
@@ -51,8 +26,8 @@
 			$(this).html($(this).text());
         	$(this).attr('contenteditable',true);
         	$(this).data('wysiwyg-html-mode',false);
-		} 
-		
+		}
+
 		// Strip the images with src="data:image/.." out;
 		if ( o === true && $(this).parent().is("form") ) {
 			var gGal = $(this).html;
@@ -73,18 +48,17 @@
 	};
 	$.fn.wysiwyg = function (userOptions) {
 		var editor = this,
-			wrapper = $(editor).parent(),
 			selectedRange,
 			options,
 			toolbarBtnSelector,
 			updateToolbar = function () {
 				if (options.activeToolbarClass) {
-					$(options.toolbarSelector,wrapper).find(toolbarBtnSelector).each(underscoreThrottle(function () {
+					$(options.toolbarSelector).find(toolbarBtnSelector).each(function () {
 						var commandArr = $(this).data(options.commandRole).split(' '),
 							command = commandArr[0];
 
 						// If the command has an argument and its value matches this button. == used for string/number comparison
-						if (commandArr.length > 1 && document.queryCommandEnabled(command) && document.queryCommandValue(command) == commandArr[1]) {
+						if (commandArr.length > 1 && document.queryCommandEnabled(command) && document.queryCommandValue(command) === commandArr[1]) {
 							$(this).addClass(options.activeToolbarClass);
 						// Else if the command has no arguments and it is active
 						} else if (commandArr.length === 1 && document.queryCommandEnabled(command) && document.queryCommandState(command)) {
@@ -93,7 +67,7 @@
 						} else {
 							$(this).removeClass(options.activeToolbarClass);
 						}
-					}, options.keypressTimeout));
+					});
 				}
 			},
 			execCommand = function (commandWithArgs, valueArg) {
@@ -116,15 +90,17 @@
 					}
 				}
 				
+
 				var parts = commandWithArgs.split('-');
-				
-				if ( parts.length == 1 ) {
-					document.execCommand(command, 0, args);
-				} 
-				else if ( parts[0] == 'format' && parts.length == 2) {
+
+				if ( parts.length === 1 ) {
+					document.execCommand(command, false, args);
+				}
+				else if ( parts[0] === 'format' && parts.length === 2 ) {
 					document.execCommand('formatBlock', false, parts[1] );
 				}
 
+				editor.trigger('change');
 				updateToolbar();
 			},
 			bindHotkeys = function (hotKeys) {
@@ -142,6 +118,8 @@
 						}
 					});
 				});
+
+				editor.keyup(function(){ editor.trigger('change'); });
 			},
 			getCurrentRange = function () {
                 var sel, range;
@@ -170,17 +148,17 @@
                         }
                         selection.addRange(selectedRange);
                     }
-                } 
+                }
                 else if (document.selection && selectedRange) {
-                	selectedRange.select()
+                	selectedRange.select();
                 }
 			},
-			
-			// Adding Toggle HTML based on the work by @jd0000, but cleaned up a little to work in this context.            
-            toggleHtmlEdit = function(a) {
+
+			// Adding Toggle HTML based on the work by @jd0000, but cleaned up a little to work in this context.
+            toggleHtmlEdit = function() {
 				if ( $(editor).data("wysiwyg-html-mode") !== true ) {
 					var oContent = $(editor).html();
-					var editorPre = $( "<pre />" )
+					var editorPre = $( "<pre />" );
                 	$(editorPre).append( document.createTextNode( oContent ) );
                 	$(editorPre).attr('contenteditable',true);
                 	$(editor).html(' ');
@@ -215,22 +193,22 @@
 			markSelection = function (input, color) {
 				restoreSelection();
 				if (document.queryCommandSupported('hiliteColor')) {
-					document.execCommand('hiliteColor', 0, color || 'transparent');
+					document.execCommand('hiliteColor', false, color || 'transparent');
 				}
 				saveSelection();
 				input.data(options.selectionMarker, color);
 			},
 			bindToolbar = function (toolbar, options) {
-				toolbar.find(toolbarBtnSelector, wrapper).click(function () {
+				toolbar.find(toolbarBtnSelector).click(function () {
 					restoreSelection();
 					editor.focus();
-					
+
                     if ($(this).data(options.commandRole) === 'html') {
                         toggleHtmlEdit();
                     }
                     else {
                     	execCommand($(this).data(options.commandRole));
-                    }				
+                    }
 					saveSelection();
 				});
 				toolbar.find('[data-toggle=dropdown]').click(restoreSelection);
@@ -285,25 +263,25 @@
 
 		toolbarBtnSelector = 'a[data-' + options.commandRole + '],button[data-' + options.commandRole + '],input[type=button][data-' + options.commandRole + ']';
 		bindHotkeys(options.hotKeys);
-		
+
 		// Support placeholder attribute on the DIV
-		if ($(this).attr('placeholder') != '') {
+		if ($(this).attr('placeholder') !== '') {
 			$(this).addClass('placeholderText');
 			$(this).html($(this).attr('placeholder'));
-			$(this).bind('focus',function(e) {
-				if ( $(this).attr('placeholder') != '' && $(this).text() == $(this).attr('placeholder') ) {
+			$(this).bind('focus',function() {
+				if ( $(this).attr('placeholder') !== '' && $(this).text() === $(this).attr('placeholder') ) {
 					$(this).removeClass('placeholderText');
 					$(this).html('');
 				}
 			});
-			$(this).bind('blur',function(e) {
-				if ( $(this).attr('placeholder') != '' && $(this).text() == '' ) {
+			$(this).bind('blur',function() {
+				if ( $(this).attr('placeholder') !== '' && $(this).text() === '' ) {
 					$(this).addClass('placeholderText');
 					$(this).html($(this).attr('placeholder'));
 				}
-			})
+			});
 		}
-		
+
 		if (options.dragAndDropImages) {
 			initFileDrops();
 		}

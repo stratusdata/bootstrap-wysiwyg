@@ -4,16 +4,17 @@
     	<meta charset="utf-8">
     	<meta http-equiv="X-UA-Compatible" content="IE=edge">
     	<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>A tiny, opensource, Bootstrap WYSIWYG rich text editor</title>	
+		<title>A tiny, opensource, Bootstrap WYSIWYG rich text editor</title>
 		<link href="../bower_components/google-code-prettify/src/prettify.css" rel="stylesheet" />
 		<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
 		<link href="http://netdna.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.css" rel="stylesheet" />
 		<link href="../css/style.css" rel="stylesheet" />
 	</head>
-	
+
 	<body>
 		<div class="container">
-			<h1>Simple HTML Editor</h1>
+			<h1>Type something to see events</h1>
+
 			<div class="btn-toolbar" data-role="editor-toolbar"
 				data-target="#editor">
 				<div class="btn-group">
@@ -58,14 +59,13 @@
 				<div class="btn-group">
 					<a class="btn btn-default" data-edit="undo" title="Undo (Ctrl/Cmd+Z)"><i class="fa fa-undo"></i></a>
 					<a class="btn btn-default" data-edit="redo" title="Redo (Ctrl/Cmd+Y)"><i class="fa fa-repeat"></i></a>
-					<a class="btn btn-default" data-edit="html" title="Clear Formatting"><i class='glyphicon glyphicon-pencil'></i></a>
 				</div>
 			</div>
-			<div id="editor" class="lead" data-placeholder="This is a basic example with a simple toolbar."></div>
+			<div id="editor" class="lead" data-placeholder="This is a basic example with no toolbars."></div>
+			<h2>Live Preview</h2>
 			<div id="editorPreview"></div>
-			<p style="text-align: center;">
-				<a class="btn btn-large btn-default jumbo" href="#!" onClick="$('#editorPreview').html($('#editor').cleanHtml());">Submit</a>
-			</p>
+			<h2>Events fired:</h2>
+			<p id="events_log"></p>
 		</div>
 
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
@@ -74,7 +74,11 @@
 		<script src="../bower_components/google-code-prettify/src/prettify.js"></script>
 		<script src="../src/bootstrap-wysiwyg.js"></script>
 		<script type='text/javascript'>
-			$('#editor').wysiwyg();
+			$('#editor').wysiwyg().on('change', function()
+			{
+				$('#editorPreview').html($(this).cleanHtml());
+				$('#events_log').append(' change');
+			});
 			
 			$(".dropdown-menu > input").click(function (e) {
         		e.stopPropagation();
