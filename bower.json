@@ -28,9 +28,9 @@
   },
   "devDependencies": {
     "jquery": ">= 1.9.0",
-    "jquery.hotkeys": ">= 1.0",
     "fontawesome": ">= 3.0.0",
     "bootstrap": ">= 2.0",
+    "es5-shim": "*",
     "google-code-prettify": ">= 1.0.1"
   }
 }

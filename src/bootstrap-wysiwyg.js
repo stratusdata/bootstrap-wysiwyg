@@ -1,15 +1,15 @@
-/* @fileoverview 
+/* @fileoverview
  * Provides full bootstrap based, multi-instance WYSIWYG editor.
- * 
+ *
  * "Name"    = 'bootstrap-wysiwyg'
  * "Author"  = 'Various, see LICENCE'
  * "Version" = '1.0.1'
- * "About"   = 'Tiny Bootstrap and JQuery Based WISWYG rich text editor.' 
+ * "About"   = 'Tiny Bootstrap and JQuery Based WISWYG rich text editor.'
  */
 (function ($) {
 	'use strict';
-	/** underscoreThrottle() 
-	 * 	From underscore http://underscorejs.org/docs/underscore.html 
+	/** underscoreThrottle()
+	 * 	From underscore http://underscorejs.org/docs/underscore.html
 	 */
 	var underscoreThrottle = function(func, wait) {
 		var context, args, timeout, result;
@@ -51,8 +51,8 @@
 			$(this).html($(this).text());
         	$(this).attr('contenteditable',true);
         	$(this).data('wysiwyg-html-mode',false);
-		} 
-		
+		}
+
 		// Strip the images with src="data:image/.." out;
 		if ( o === true && $(this).parent().is("form") ) {
 			var gGal = $(this).html;
@@ -78,16 +78,18 @@
 			options,
 			toolbarBtnSelector,
 			updateToolbar = function () {
+
+
 				if (options.activeToolbarClass) {
 					$(options.toolbarSelector,wrapper).find(toolbarBtnSelector).each(underscoreThrottle(function () {
 						var commandArr = $(this).data(options.commandRole).split(' '),
 							command = commandArr[0];
 
 						// If the command has an argument and its value matches this button. == used for string/number comparison
-						if (commandArr.length > 1 && document.queryCommandEnabled(command) && document.queryCommandValue(command) == commandArr[1]) {
+						if (commandArr.length > 1 && document.queryCommandSupported(command) && document.queryCommandValue(command) == commandArr[1]) {
 							$(this).addClass(options.activeToolbarClass);
 						// Else if the command has no arguments and it is active
-						} else if (commandArr.length === 1 && document.queryCommandEnabled(command) && document.queryCommandState(command)) {
+						} else if (commandArr.length === 1 && document.queryCommandSupported(command) && document.queryCommandState(command)) {
 							$(this).addClass(options.activeToolbarClass);
 						// Else the command is not active
 						} else {
@@ -115,12 +117,35 @@
 						}
 					}
 				}
-				
+
 				var parts = commandWithArgs.split('-');
-				
+
 				if ( parts.length == 1 ) {
-					document.execCommand(command, 0, args);
-				} 
+					if (command == 'createLink') {
+						var html = '<a href="' + args + '" target="blank">' + args + '</a>';
+						// IE <= 10
+						if (document.selection){
+						  var range = document.selection.createRange();
+						  range.pasteHTML(html);
+
+						// Everyone else
+						}
+						else if(document.getSelection){
+					    var range = document.getSelection().getRangeAt(0);
+					    var nnode = document.createElement("a");
+							nnode.setAttribute('href', args);
+							nnode.setAttribute('target', '_blank');
+
+							if (range.toString()){
+								range.surroundContents(nnode);
+							}
+							else {
+								nnode.innerHTML = args;
+								range.insertNode(nnode);
+							}
+						};
+					}
+				}
 				else if ( parts[0] == 'format' && parts.length == 2) {
 					document.execCommand('formatBlock', false, parts[1] );
 				}
@@ -159,25 +184,25 @@
 			},
 			restoreSelection = function () {
 				var selection;
-                if (window.getSelection || document.createRange) {
-                    selection = window.getSelection();
-                    if (selectedRange) {
-                        try {
-                            selection.removeAllRanges();
-                        } catch (ex) {
-                            document.body.createTextRange().select();
-                            document.selection.empty();
-                        }
-                        selection.addRange(selectedRange);
-                    }
-                } 
-                else if (document.selection && selectedRange) {
-                	selectedRange.select()
+				if (window.getSelection || document.createRange) {
+            selection = window.getSelection();
+            if (selectedRange) {
+                try {
+                    selection.removeAllRanges();
+                } catch (ex) {
+                    document.body.createTextRange().select();
+                    document.selection.empty();
                 }
+                selection.addRange(selectedRange);
+            }
+        }
+        else if (document.selection && selectedRange) {
+        	selectedRange.select()
+        }
 			},
-			
-			// Adding Toggle HTML based on the work by @jd0000, but cleaned up a little to work in this context.            
-            toggleHtmlEdit = function(a) {
+
+			// Adding Toggle HTML based on the work by @jd0000, but cleaned up a little to work in this context.
+      toggleHtmlEdit = function(a) {
 				if ( $(editor).data("wysiwyg-html-mode") !== true ) {
 					var oContent = $(editor).html();
 					var editorPre = $( "<pre />" )
@@ -224,15 +249,16 @@
 				toolbar.find(toolbarBtnSelector, wrapper).click(function () {
 					restoreSelection();
 					editor.focus();
-					
+
                     if ($(this).data(options.commandRole) === 'html') {
                         toggleHtmlEdit();
                     }
                     else {
                     	execCommand($(this).data(options.commandRole));
-                    }				
+                    }
 					saveSelection();
 				});
+
 				toolbar.find('[data-toggle=dropdown]').click(restoreSelection);
 
 				toolbar.find('input[type=text][data-' + options.commandRole + ']').on('webkitspeechchange change', function () {
@@ -244,19 +270,36 @@
 						execCommand($(this).data(options.commandRole), newValue);
 					}
 					saveSelection();
-				}).on('focus', function () {
+				})
+				.on('click', function (ev) {
+					ev.preventDefault();
+					ev.stopPropagation();
+					return false;
+				}).on('focus', function (ev) {
 					var input = $(this);
-					if (!input.data(options.selectionMarker)) {
-						markSelection(input, options.selectionColor);
-						input.focus();
+					if (typeof updateSelection == 'undefined') {
+						/*restoreSelection();
+
+						if (!input.data(options.selectionMarker)) {
+							markSelection(input, options.selectionColor);
+							input.focus()
+						}*/
 					}
+					ev.stopPropagation();
+					return false;
 				}).on('blur', function () {
 					var input = $(this);
-					if (input.data(options.selectionMarker)) {
-						markSelection(input, false);
-					}
+
+					window.setTimeout(function () {
+						$(editor).focus();
+						restoreSelection();
+						if (input.data(options.selectionMarker)) {
+							markSelection(input, false);
+						}
+					}, 100);
 				});
 				toolbar.find('input[type=file][data-' + options.commandRole + ']').change(function () {
+					$(editor).focus();
 					restoreSelection();
 					if (this.type === 'file' && this.files && this.files.length > 0) {
 						insertFiles(this.files);
@@ -279,13 +322,13 @@
 		options = $.extend(true, {}, $.fn.wysiwyg.defaults, userOptions);
 
 		//do not extend hotkeys, either use the default of the passed in option
-		if(userOptions.hotKeys) {
+		if(userOptions && userOptions.hotKeys) {
 			options.hotKeys = userOptions.hotKeys;
 		}
 
 		toolbarBtnSelector = 'a[data-' + options.commandRole + '],button[data-' + options.commandRole + '],input[type=button][data-' + options.commandRole + ']';
 		bindHotkeys(options.hotKeys);
-		
+
 		// Support placeholder attribute on the DIV
 		if ($(this).attr('placeholder') != '') {
 			$(this).addClass('placeholderText');
@@ -303,7 +346,7 @@
 				}
 			})
 		}
-		
+
 		if (options.dragAndDropImages) {
 			initFileDrops();
 		}
