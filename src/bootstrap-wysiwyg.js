@@ -386,7 +386,7 @@
 		activeToolbarClass: 'btn-info',
 		selectionMarker: 'edit-focus-marker',
 		selectionColor: 'darkgrey',
-		dragAndDropImages: true,
+		dragAndDropImages: false,
 		keypressTimeout: 200,
 		makeLinksValid: true,
 		invalidLinkHandler: function (link) { return; },
